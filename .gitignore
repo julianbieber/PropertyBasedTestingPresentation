@@ -1,0 +1,10 @@
+.idea
+*/target
+target
+
+**.aux
+**.log
+**.nav
+**.out
+**.snm
+**.toc

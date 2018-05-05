@@ -1,0 +1,141 @@
+\documentclass[xcolor=svgnames,handout]{beamer}
+
+\usepackage[utf8]    {inputenc}
+\usepackage[T1]      {fontenc}
+\usepackage[english] {babel}
+\usepackage{graphicx}
+
+\usepackage{amsmath,amsfonts,graphicx}
+\usepackage{beamerleanprogress}
+
+
+\title
+[Fuzzy Testing \hspace{2em}]
+{Fuzzy Testing \\ A golden bullet for writing tests?}
+
+\author
+[Julian Bieber]
+{Julian Bieber}
+
+\date
+{\today}
+
+
+\begin{document}
+
+    \maketitle
+
+    \section
+    {Introduction}
+
+    \begin{frame}
+    {Definition}
+        \begin{itemize}
+            \item General input satisfying precondition
+            \item Property that must hold true on output
+        \end{itemize}
+        \begin{figure}[ht]
+        \centering
+        \includegraphics[width=0.33\textwidth]{cat-10.png}
+        \end{figure}
+
+    \end{frame}
+
+
+    \section
+    {When to use Property Based Tests}
+
+    \begin{frame}
+    {Should every component be tested this way?}
+
+        No, most small unit tests do not lend themselves well to Property Based Tests.
+
+        In many cases the of writing Property Based Tests is hard to justify.
+
+        But they excel in a few cases.
+    \end{frame}
+
+
+    \begin{frame}
+    {Bijective Functions}
+        \begin{itemize}
+            \item Serialization - Serialization must be reversible
+            \item DB read/write - Every object written to the db must be retrievable
+            \item Generally applicable $f'(f(x)) = x$
+        \end{itemize}
+
+        Example: \texttt{bijective.SerializationSpec}
+    \end{frame}
+
+
+    \begin{frame}
+    {Invariants}
+        \begin{itemize}
+            \item Algorithms - sorting, compression
+            \item Repricing strategies
+            \item Integration tests
+            \item Generally applicable if there are simple Pre- and Postconditions
+        \end{itemize}
+
+        Example: \texttt{invariant.CompressionSpec}
+
+    \end{frame}
+
+
+    \begin{frame}
+    {Regression}
+        \begin{itemize}
+            \item There is an old component$;$ no tests $:($
+            \item Works mostly correct$;$ one known bug
+            \item Goal: make sure new implementation does not break existing behavior
+            \item $\forall x: notKnownBug(x) \implies old(x) = new(x)$
+            \item $\forall x: previousBug(x) \implies expectation(new(x)) = true $
+        \end{itemize}
+
+        Example: \texttt{regression.FibonacciSpec}
+
+    \end{frame}
+
+    \begin{frame}
+    {Notes On ScalaCheck - Preconditions}
+
+        \begin{itemize}
+            \item Bound to Generator with \texttt{Gen[A].suchThat(predicate)} or \texttt{Gen[A].retryUntil(predicate)}
+            \item Generator built to include precondition \texttt{BasicGenerators.genNonEmptySeq[A](Gen[A]): Gen[Seq[A]]}
+            \item Inside \texttt{forAll} block with \texttt{whenever(predicate(generated)) \{...\}}
+        \end{itemize}
+
+    \end{frame}
+
+    \begin{frame}
+    {Notes on ScalaCheck - Configuration}
+
+        \begin{itemize}
+            \item set through \texttt{implicit val PropertyCheckConfiguration}
+            \item \texttt{minSuccessful}: number of successful evaluations for pass
+            \item \texttt{maxDiscardedFactor}: \texttt{minSuccessful * maxDiscardFactor} = number of generated values that can be discarded
+            \item \texttt{minSize}: minimun size for iterable types (String, Seq, Set ...)
+            \item \texttt{sizeRange}: \texttt{minSize * sizeRange} = max size for iterable types
+            \item \texttt{workers}: number of threads evaluating the \texttt{forAll} block
+        \end{itemize}
+
+    \end{frame}
+
+    \begin{frame}
+    {Notes on ScalaCheck - Shrink}
+
+        \begin{itemize}
+            \item Goal: Find smallest input to produce failure
+            \item Bug: When a value is shrunk preconditions are ignored
+            \item Bug: Input shrunk without failure
+            \item Symptom: The test is executed for unexpected values $\implies$ test reporting failure where nothing is wrong
+            \item Workaround: Disable shrinking when there are preconditions
+            \item Workaround: Preconditions through specific generator + \texttt{whenever(p(x)) \{...\}} block
+        \end{itemize}
+
+        \texttt{ implicit val noShrink: Shrink[A] = Shrink.shrinkAny }
+
+    \end{frame}
+
+\end{document}
+
