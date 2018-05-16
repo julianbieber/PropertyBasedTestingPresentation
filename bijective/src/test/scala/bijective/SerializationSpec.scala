@@ -23,27 +23,12 @@ class SerializationSpec extends FlatSpec with MustMatchers with GeneratorDrivenP
     workers = PosInt(1)
   )
 
-
-  implicit val arbitrarySimpleCaseClass = ArbitraryBuilder.build[SimpleCaseClass]
-  implicit val arbitraryNestedCaseClass = ArbitraryBuilder.build[NestedCaseClass]
-
-
   "Serialization" must "be reversible for simple case classes" in {
-    forAll{ simple: SimpleCaseClass  =>
-      val serialized = Serialization.serialize(simple)
-      val deserialized = Serialization.deserialize[SimpleCaseClass](serialized)
 
-      deserialized must be(simple)
-    }
   }
 
   it must "be reversible for nested case classes" in {
-    forAll{ nested: NestedCaseClass  =>
-      val serialized = Serialization.serialize(nested)
-      val deserialized = Serialization.deserialize[NestedCaseClass](serialized)
 
-      deserialized must be(nested)
-    }
   }
 
 
